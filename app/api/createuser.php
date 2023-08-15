@@ -11,13 +11,14 @@ if ($_SERVER['REQUEST_METHOD']==="POST") {
     $userCont = new UserController();
     $success= $userCont->register($user);
     if ($success) {
+        var_dump($success);
         $response = new Response(201,$user);
         $response->create();
         return;
     }
     else{
 
-        $err = new Error(400);
+        $err = new Response(400,[],"User already exists !");
         $err->create();    
      }
     

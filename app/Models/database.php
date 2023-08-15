@@ -5,11 +5,22 @@ namespace App\Models;
 
 class Database{
 
-    public string $dbname = 'dbname=test;';
-    public string $host= 'mysql:host=localhost:3306;';
-    public string $username = 'root';
+    
+    public array $config = 
+    ["dsn"=>"mysql:host=localhost:3306;",
+    "dbname"=>"dbname=test;",
+    "username"=>"root",
+    "password"=>""
+    ];
 
-    public string $password = '';
+    public static array $columns= [
+        "firstname"=>"firstName",
+        "lastname"=>"lastName",
+        "address"=>"address",
+        "city"=>"city",
+        "username"=>"username",
+        "password"=>"password"
+    ];
 
     public \PDO $connection;
 
@@ -17,13 +28,14 @@ class Database{
 
     ){
         try {
-            $this->connection = new \PDO($this->host.$this->dbname,$this->username,$this->password);
+            $this->connection = new \PDO($this->config["dsn"].$this->config["dbname"],$this->config["username"],$this->config["password"]);
 
         } catch (\Throwable $e) {
             echo "  Database has an error : <hr>".$e." <hr>";
+            exit;
 
         }
-
+        
     }
     
 

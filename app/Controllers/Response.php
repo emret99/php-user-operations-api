@@ -50,14 +50,15 @@ class Response{
         502 => 'Bad Gateway',  
         503 => 'Service Unavailable',  
         504 => 'Gateway Timeout',  
-            505 => 'HTTP Version Not Supported');
+        505 => 'HTTP Version Not Supported');
         public int $statusCode;
         public $Data;
         public string $infoMessage;
 
         public function __construct(
              int $statuscode,
-             mixed $Data
+             mixed $Data,
+             string $infoMessage =null
 
      
 
@@ -66,13 +67,20 @@ class Response{
             
             if (!array_key_exists($statuscode,self::$status)) {
                 $this->statusCode = 500;
-
-
+                
+                
             }
             else{
                 $this->statusCode = $statuscode;
-                $this->infoMessage = self::$status[$statuscode];
+                if ($infoMessage) {
+                    $this->infoMessage = $infoMessage;
                 }
+                else {
+                
+                    $this->infoMessage = self::$status[$statuscode];
+                }
+            }
+           
 
         }
         public static function getStatus(){

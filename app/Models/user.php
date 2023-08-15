@@ -5,9 +5,15 @@ namespace App\Models;
 
 
 class User {
-    public static string $userTable = "kullanici";
-    public static array $userConfig =["firstname"=>"FirstName","lastname"=>"Lastname","address"=>"Address","city"=>"city","username"=>"k_adi","password"=>"sifre",];
-
+    public static string $userTable = "users";
+    public static array $columns= [
+        "firstname"=>"firstName",
+        "lastname"=>"lastName",
+        "address"=>"address",
+        "city"=>"city",
+        "username"=>"username",
+        "password"=>"password"
+    ];
 
     public function __construct(
         public string $firstName,
