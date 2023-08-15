@@ -1,5 +1,5 @@
 {
-    "name": "emre/myself-api",
+    "name": "emre/user-api",
     "autoload": {
         "psr-4": {
             "App\\": "app/"
