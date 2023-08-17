@@ -11,5 +11,7 @@
             "email": "emret1.337@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "fakerphp/faker": "^1.23"
+    }
 }

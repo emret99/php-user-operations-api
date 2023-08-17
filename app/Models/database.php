@@ -13,14 +13,7 @@ class Database{
     "password"=>""
     ];
 
-    public static array $columns= [
-        "firstname"=>"firstName",
-        "lastname"=>"lastName",
-        "address"=>"address",
-        "city"=>"city",
-        "username"=>"username",
-        "password"=>"password"
-    ];
+
 
     public \PDO $connection;
 

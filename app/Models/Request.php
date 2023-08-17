@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Models;
 
 
 
 class Request{
 
-    public string $method =$this->configs['REQUEST_METHOD'];
 
     public function __construct(
          public array $configs,

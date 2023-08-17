@@ -107,7 +107,12 @@ class UserController{
             $query = "DELETE FROM ". User::$userTable ." WHERE username=:username;";
 
             return $this->db->connection->prepare($query)->execute(array("username"=>$user->username));                
-        }
+    }
+
+    public function removeAll(){
+        $query = "TRUNCATE TABLE " . User::$userTable . ";";
+        return $this->db->connection->query($query);
+    }
 
              
     }
