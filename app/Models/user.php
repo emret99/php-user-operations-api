@@ -12,19 +12,24 @@ class User {
         "address"=>"address",
         "city"=>"city",
         "username"=>"username",
-        "password"=>"password"
+        "password"=>"password",
+        "email"=>"email",
+        "created_at"=>"created_at"
     ];
 
     public function __construct(
-        public string $firstName,
-        public string $lastName,
-        public string $address,
-        public string $city,
-        public string $username,
-        public string $password
+        public string $firstName="",
+        public string $lastName="",
+        public string $address="",
+        public string $city="",
+        public string $username="",
+        public string $password="",
+        public string $email="",
+        public string $created_at=""
     ){
 
 
     }
+
 
 }

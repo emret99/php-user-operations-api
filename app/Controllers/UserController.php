@@ -5,7 +5,7 @@ namespace App\Controllers;
 use App\Helpers\ReplaceWord;
 use App\Models\User;
 use App\Models\Database;
-use App\Exceptions\DatabaseException;
+use App\Controllers\ResponseController;
 class UserController{
 
     private Database  $db ;
@@ -24,100 +24,173 @@ class UserController{
         return $user;
     }
 
+    private function getAllUsers(){
+
+         return $this->db->connection->query(query:"SELECT * FROM " .User::$userTable  .  ";",fetchMode:\PDO::FETCH_ASSOC)->fetchAll();
+    }
+    private function getWhere($data){
+       $this->checkColumn($data['column']);
+
+       $query = " SELECT * FROM ". User::$userTable . " WHERE ". $data['column'] . " = :value";
+       
+       $stmt =  $this->db->connection->prepare(query:$query);
+
+       $stmt->execute(params:["value"=>$data['value']]);
+
+       $result = $stmt->fetchAll(mode:\PDO::FETCH_ASSOC);
+
+       return $result;
+
+
+    }
+    private function checkColumn($column){
+        if (!(array_key_exists(key:$column,array:User::$columns))) {
+            return false;
+       }
+       return true;
+
+
+    }
+    private function checkSuccess($data,$errMsg="", $successMsg=""){
+        if ($data) {
+            $response = new ResponseController(statuscode:200,Data:[$data],infoMessage:$successMsg);
+            $response->create();
+
+        }
+        else{
+            $response = new ResponseController(statuscode:400,Data:[],infoMessage:$errMsg);
+            $response->create();
+        }
+
+
+    }
+
 
 
     public  function getAll(){
 
+        $data = $this->getAllUsers();
 
-         try{      
-         return $this->db->connection->query("SELECT * FROM " .User::$userTable  .  ";",\PDO::FETCH_ASSOC)->fetchAll();
-        } 
-        catch(DatabaseException $e){
-
-        } 
+        return $this->checkSuccess(data:$data,errMsg:"Could not found any user",successMsg:"Fetched users successfully");
+        
 
  
     }
 
 
-    public  function login(User $usr){
+    public  function login($param){
+        $usr = new User(username:$param['username'],password:$param['password']);
 
-         $user = self::sanitizeUser($usr);
 
          $stmt = $this->db->connection->
-         prepare("SELECT * FROM ". User::$userTable ."  WHERE ".User::$columns['username']." = :username AND ".User::$columns['password']." = :password");
+         prepare(query:"SELECT * FROM ". User::$userTable ."  WHERE ".User::$columns['username']." = :username AND ".User::$columns['password']." = :password");
 
-         $stmt->execute(array("username"=>$user->username,"password"=>$user->password));
+         $stmt->execute(params:array("username"=>$usr->username,"password"=>$usr->password));
 
-         return $stmt->fetchAll();
+         $data= $stmt->fetchAll(mode:\PDO::FETCH_ASSOC);
+
+         $this->checkSuccess(data:$data,errMsg:"User not found",successMsg:"Logged in successfully");
+         return true;
          
     }
 
 
-    public  function getBy($column,$value){
-        if (!(array_key_exists($column,User::$columns))) {
-            return [];
-        }
+    public  function getBy($data){
+         if (!$this->checkColumn($data['column'])) {
+            return $this->checkSuccess(false,"Column not found");
+         }
 
-        $query = " SELECT * FROM ". User::$userTable . " WHERE ". $column . " = :value";
-        
-        $stmt =  $this->db->connection->prepare($query);
+        $result = $this->getWhere(data:$data);
 
-        $stmt->execute(["value"=>$value]);
-
-        return $stmt->fetchAll();
-        
+        $this->checkSuccess(data:$result,errMsg:"Could not found any users for given credentials",successMsg:"Fetched users successfully");    
+        return true;
 
     }
 
 
-    public  function register(User $user){
+    public  function register( $user){
 
-        $userArr= $this->getAll();
+        $user = new User(firstName:$user['firstname'],lastName:$user['lastname'],address:$user['address'],city:$user['city'],username:$user['username'],password:$user['password'],email:$user['email'],created_at:$user['created_at']);
+
+        $userArr= $this->getAllUsers();
 
         foreach ($userArr as $item) {
             
+            
 
             if ($item['username'] === $user->username) {
-                return false;
+                return $this->checkSuccess(data:false,errMsg:"User already exists");
             }  
-                
         }
 
-        $query = "INSERT INTO ". User::$userTable ."(".implode(',',User::$columns).")
-        VALUES (?,?,?,?,?,?);
+        $query = "INSERT INTO ". User::$userTable ."(".implode(separator:',',array:User::$columns).")
+        VALUES (?,?,?,?,?,?,?,?);
         ";
 
-        return $this->db->connection->
-        prepare($query)->
-        execute(array($user->firstName,$user->lastName,$user->address,$user->city,$user->username,$user->password));
+        $data= $this->db->connection->
+        prepare(query:$query)->
+        execute(params:array($user->firstName,$user->lastName,$user->address,$user->city,$user->username,$user->password,$user->email,$user->created_at)); 
+         $this->checkSuccess(data:$data,successMsg:"User created successfully");
 
+         return true;
 
     }
 
 
 
+    public function remove($user){
 
-    public function remove(User $user){
-       $res = $this->getBy('username',$user->username);
+       $res = $this->getWhere(data:["column"=>$user['column'],"value"=>$user['value']]);
        if (!$res) {
-            
+            $this->checkSuccess(data:false,errMsg:"User not found");
             return false;
        }
-            $query = "DELETE FROM ". User::$userTable ." WHERE username=:username;";
-
-            return $this->db->connection->prepare($query)->execute(array("username"=>$user->username));                
+            $success= $this->db->connection->prepare(query:"DELETE FROM ". User::$userTable ." WHERE ".$user['column']."=:value;")->execute(array("value"=>$user['value']));  
+            $this->checkSuccess(data:$success,successMsg:"Users deleted successfully");
+            return true;              
     }
 
     public function removeAll(){
-        $query = "TRUNCATE TABLE " . User::$userTable . ";";
-        return $this->db->connection->query($query);
+        $data= $this->db->connection->
+        prepare(query:"TRUNCATE TABLE " . User::$userTable . ";")->
+        execute();
+         $this->checkSuccess(data:$data,errMsg:"Delete operation failed",successMsg:"All records deleted successfully");
     }
 
-             
+    public function createFakeUser($count = null){
+        $faker = \Faker\Factory::create(locale:"tr_Tr");
+        $success = null;
+
+
+        if(isset($count)) {
+            for ($i=0; $i < $count['userCount'] ; $i++) { 
+                $user =  ["firstname"=>$faker->firstName(),"lastname"=>$faker->lastName(),"address"=>$faker->address(),"city"=>$faker->city(),"username"=>$faker->username(),"password"=>$faker->password(),"email"=>$faker->email(),"created_at"=>$faker->date()."-".$faker->time()];
+                $success= $this->register(user:$user);
+            }
+
+            $this->checkSuccess(data:$success);
+
+            return true;
+            
+        }
+        else{
+            $user = ["firstname"=>$faker->firstName(),"lastname"=>$faker->lastName(),"address"=>$faker->address(),"city"=>$faker->city(),"username"=>$faker->userName(),"password"=>$faker->password(),"email"=>$faker->email(),"created_at"=>$faker->date()."-".$faker->time()];
+            $this->register(user:$user);
+            return true;
+        }
+
+
+    }
+    public function changeVal($params){
+        var_dump($params);
+        $res = $this->getWhere($params);
+        if (!$res) {
+            $this->checkSuccess(false,"User not found");
+            return false;
+        }
+
     }
 
 
 
-
-
+}

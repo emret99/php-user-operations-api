@@ -1,25 +1,7 @@
 <?php
-require_once("../../vendor/autoload.php");
-use App\Controllers\Error;
-use App\Controllers\Response;
-use App\Controllers\UserController;
-use App\Models\User;
- if ($_SERVER['REQUEST_METHOD']=='POST') {
+ require_once("../../vendor/autoload.php");
+use App\Controllers\RequestController;
 
-    $userCont = new UserController();
-    $user = new User("","","","",$_GET['username'],"");
-    $success = $userCont->remove($user);
-    if ($success) {
-        $response = new Response(201,"Username : ".$user->username,"Successfully deleted user");
-        $response->create();
 
-    }else{
-      $err = new Response(400,[],"User doesn't exists");
-      $err->create();
-    }
- }
- else{
-   $err = new Error(405);
-   $err->create();}
-
-?>
+$req = new RequestController($_SERVER);
+$req->answer();

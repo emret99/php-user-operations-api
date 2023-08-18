@@ -4,7 +4,7 @@
 namespace App\Controllers;
 
 
-class Response{
+class ResponseController{
 
 
 
