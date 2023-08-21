@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Controllers\UserController;
-use App\Controllers\Error;
 class RequestController{
     public array $routes=[
         "/php-user-operations-api/app/api/createfakeuser.php"=>["GET","createFakeUser"],

@@ -181,16 +181,23 @@ class UserController{
 
 
     }
-    public function changeVal($params){
-        var_dump($params);
-        $res = $this->getWhere($params);
+    public function changePassword($params){
+        $res = $this->getWhere(["column"=>"username","value"=>$params['username']]);
         if (!$res) {
-            $this->checkSuccess(false,"User not found");
+            $this->checkSuccess(data:false,errMsg:"User not found");
             return false;
         }
-
+        $query = "UPDATE  ". User::$userTable." SET password = :password WHERE username= :username AND password=:oldpassword" ;
+        $stmt =$this->db->connection->prepare(query:$query);
+        $stmt->execute(params:["password"=>$params['newpassword'],"username"=>$res[0]['username'],"oldpassword"=>$params['oldpassword']]);
+        if ($stmt->rowCount()>0) {
+            $this->checkSuccess(data:true,successMsg:"Successfully changed password");
+            return true;
+        }
+        else{
+            $this->checkSuccess(data:false,errMsg:"Unable to change password");
+        }
     }
-
 
 
 }
